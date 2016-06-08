@@ -31,8 +31,6 @@ module Rabl
 
       # Append onto @_engines
       compile_settings(:extends)
-      compile_settings(:child)
-      compile_settings(:glue)
 
       @_engines
     end
@@ -42,12 +40,22 @@ module Rabl
     end
 
     def to_hash(object = nil, settings = {}, options = {})
+      # Use the replaced engine
+      if Rabl.configuration.shortcut_cache && engines.first.is_a?(Hash)
+        result = engines.first
+        result = { @options[:root_name] => result } if @options[:root_name].present?
+        return result
+      end
+
       @_object = object           if object
       @options.merge!(options)    if options
       @settings.merge!(settings)  if settings
 
       cache_results do
         @_result = {}
+
+        compile_settings(:child)
+        compile_settings(:glue)
 
         # Merges directly into @_result
         compile_settings(:attributes)
